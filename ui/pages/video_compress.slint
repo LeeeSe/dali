@@ -1,0 +1,43 @@
+import { Button, VerticalBox , ListView, StandardListView, HorizontalBox, StandardButton, ComboBox, ProgressIndicator, StandardTableView} from "std-widgets.slint";
+
+export component VideoCompress inherits VerticalBox {
+    callback choose_video_file();
+    callback compress_video();
+    in-out property <float> compressing_progress_value;
+    in property <bool> compress_enabled;
+    in property <string> input_file_path;
+    in-out property <string> video_type <=> type-cbx.current-value;
+    Button {
+        text: "选择文件";
+        clicked => {
+            choose_video_file();
+        }
+    }
+
+    if (input-file-path != "None") : Text {
+        text: "已选择文件:\n\{input_file_path}";   
+    }
+
+    HorizontalBox {
+        Text {
+            text: "输出格式：";
+        }
+        type_cbx := ComboBox { 
+            height: 20px;
+            width: 70px;
+            model: ["mp4", "avi", "mov"];
+        }
+    }
+    Button {
+        text: "开始压缩";
+        enabled: compress_enabled;
+        clicked => {
+            compress_video();
+        }
+        
+    }
+    ProgressIndicator { 
+        progress: compressing_progress_value;
+    }
+}
+
