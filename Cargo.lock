@@ -1018,7 +1018,7 @@ checksum = "96a6ac251f4a2aca6b3f91340350eab87ae57c3f127ffeb585e92bd336717991"
 
 [[package]]
 name = "dali"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "env_home",
  "openai_dive",
