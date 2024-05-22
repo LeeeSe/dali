@@ -1,0 +1,59 @@
+import { Button, VerticalBox , ListView, StandardListView,HorizontalBox, StandardButton, ComboBox, ProgressIndicator, StandardTableView, TextEdit} from "std-widgets.slint";
+import { Palette } from "std-widgets.slint";
+import { StyleMetrics, ScrollView } from "std-widgets.slint";
+
+export component Msg inherits Window {
+    callback more_game();
+    in-out property <bool> flag;
+    in-out property <[{a: int, b: string}]> msgs;
+
+    ScrollView {
+        VerticalBox {
+            alignment: LayoutAlignment.start;
+            for msg[index] in msgs: VerticalBox {
+                alignment: LayoutAlignment.start;
+                if msg.a == 2: HorizontalBox {
+                    alignment: LayoutAlignment.start;
+                    Rectangle {
+                        border-radius: 12px;
+                        border-color: StyleMetrics.dark-color-scheme ? rgb(74, 74, 74) : rgb(204, 204, 204);
+                        border-width: 1px;
+                        width: 24px;
+                        height: 24px;
+
+                        background: StyleMetrics.dark-color-scheme ? rgb(33, 33, 33) : rgb(255, 255, 255);
+                        Image {
+                            source: @image-url("/Users/ls/rust/dali/ui/icon.svg");
+                            height: 16px;
+                            width: 16px;
+                            colorize: Palette.control-foreground;
+                        }
+                    }
+
+                    TextInput {
+                        read-only: true;
+                        wrap: word-wrap;
+                        text: msg.b;
+                    }
+                }
+
+                if msg.a == 1:HorizontalBox {
+                    alignment: LayoutAlignment.end;
+                    padding-left: 40px;
+                    Rectangle {
+                        background: StyleMetrics.dark-color-scheme ? rgb(64, 64, 65) : rgb(231, 230, 232);
+                        border-radius: 15px;
+                        min-height: 33px;
+                        HorizontalBox {
+                            TextInput {
+                                read-only: true;
+                                wrap: word-wrap;
+                                text: msg.b;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

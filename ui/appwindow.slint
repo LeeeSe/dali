@@ -1,0 +1,57 @@
+import { Button, VerticalBox , ListView, StandardListView, HorizontalBox, StandardButton, ComboBox, ProgressIndicator} from "std-widgets.slint";
+import { Msg } from "messages.slint";
+import { StyleMetrics, TextEdit, LineEdit } from "std-widgets.slint";
+export component AppWindow inherits Window {
+    title: "Dali";
+    min-width: 600px;
+    min-height: 240px;
+    preferred-width: 800px;
+    preferred-height: 480px;
+    default-font-size: 14px;
+    default-font-weight: 500;
+    background: StyleMetrics.dark-color-scheme ? rgb(36, 35, 37) : rgb(243, 242, 244);
+
+    in-out property <[{a: int, b: string}]> msgs;
+    callback get_input(string);
+    callback clear();
+
+    HorizontalBox {
+        side_bar := StandardListView {
+            width: 100px;
+            // max-width: 200px;
+            current-item: 0;
+            model: [{
+                text: "深度求索",
+            }, {
+                text: "通义千问",
+            }];
+        }
+
+        VerticalBox {
+            if side_bar.current-item == 0:Msg {
+                vertical-stretch: 1;
+                msgs: root.msgs;
+            }
+
+            HorizontalBox {
+                vertical-stretch: 0;
+                LineEdit {
+                    placeholder-text: "请输入您的问题";
+                    accepted(text) => {
+                        get_input(text);
+                        self.text = "";
+                    }
+                }
+
+                Button {
+                    horizontal-stretch: 0;
+                    icon: @image-url("/Users/ls/rust/dali/ui/clear.svg");
+                    clicked => {
+                        root.msgs = [];
+                        clear();
+                    }
+                }
+            }
+        }
+    }
+}
