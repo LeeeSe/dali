@@ -10,8 +10,10 @@ build = "build.rs"
 [dependencies]
 openai_dive = "0.4.8"
 reqwest = "0.12.4"
+serde = { version = "1.0.202", features = ["derive"] }
 slint = "1.5"
-tokio = { version = "1.37.0",  features = ["full"] }
+tokio = { version = "1.37.0", features = ["full"] }
+toml = "0.8.13"
 
 [build-dependencies]
 slint-build = "1.5"

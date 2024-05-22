@@ -4,7 +4,6 @@ import { StyleMetrics, ScrollView } from "std-widgets.slint";
 
 export component Msg inherits Window {
     callback more_game();
-    in-out property <bool> flag;
     in-out property <[{a: int, b: string}]> msgs;
 
     ScrollView {
@@ -13,6 +12,8 @@ export component Msg inherits Window {
             for msg[index] in msgs: VerticalBox {
                 alignment: LayoutAlignment.start;
                 if msg.a == 2: HorizontalBox {
+                    // padding-bottom: -1px;
+                    // padding-top: -1px;
                     alignment: LayoutAlignment.start;
                     Rectangle {
                         border-radius: 12px;
@@ -38,6 +39,8 @@ export component Msg inherits Window {
                 }
 
                 if msg.a == 1:HorizontalBox {
+                    // padding-bottom: -1px;
+                    // padding-top: -1px;
                     alignment: LayoutAlignment.end;
                     padding-left: 40px;
                     Rectangle {

@@ -1,3 +1,6 @@
+mod llm;
+
+use llm::LLMServiceList;
 use openai_dive::v1::{
     api::Client,
     resources::chat::{ChatCompletionParameters, ChatMessage, ChatMessageContent, Role},
@@ -14,47 +17,6 @@ pub fn msg_with_blank(msg: String) -> String {
     new_string.push_str(msg.as_str()); // 添加原始字符串
     new_string.push(' '); // 尾部添加空格
     new_string
-}
-
-pub async fn get_response(msgs: Vec<Message>) -> SharedString {
-    let api_key = "sk-c6b066326ec04fc1a726cb9293b8f02b".to_string();
-    let base_url = "https://api.deepseek.com".to_string();
-
-    let http_client = reqwest::Client::builder().build().unwrap();
-
-    let client = Client {
-        http_client,
-        base_url,
-        api_key,
-        organization: None,
-        project: None,
-    };
-
-    let messages = msgs
-        .iter()
-        .map(|msg| ChatMessage {
-            role: match msg.sender {
-                Sender::User => Role::User,
-                Sender::System => Role::System,
-                Sender::Assistant => Role::Assistant,
-            },
-            content: ChatMessageContent::Text(msg.content.clone()),
-            ..Default::default()
-        })
-        .collect();
-
-    let parameters = ChatCompletionParameters {
-        model: "deepseek-chat".to_string(),
-        messages,
-        max_tokens: Some(4096),
-        ..Default::default()
-    };
-
-    let result = client.chat().create(parameters).await.unwrap();
-
-    let response = extract_text_content(result.choices[0].message.content.clone());
-
-    SharedString::from(response)
 }
 
 fn extract_text_content(content: ChatMessageContent) -> String {
@@ -82,6 +44,8 @@ use std::sync::{Arc, Mutex};
 #[derive(Clone, Debug)]
 pub struct MessageList {
     pub messages: Arc<Mutex<Vec<Message>>>,
+    pub services: Arc<Mutex<LLMServiceList>>,
+    pub current_service: Arc<Mutex<Option<String>>>,
 }
 
 impl MessageList {
@@ -89,6 +53,8 @@ impl MessageList {
     pub fn new() -> Self {
         Self {
             messages: Arc::new(Mutex::new(vec![])),
+            services: Arc::new(Mutex::new(LLMServiceList::load().unwrap())),
+            current_service: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -128,6 +94,11 @@ impl MessageList {
         self.messages.lock().unwrap().clone()
     }
 
+    pub fn set_current_service(&self, service_name: String) {
+        let mut current_service = self.current_service.lock().unwrap();
+        *current_service = Some(service_name);
+    }
+
     // 生成可供 ui.set_msgs 输入的内容
     pub fn to_model_rc(&self) -> ModelRc<(i32, SharedString)> {
         let messages = self.get_messages();
@@ -154,8 +125,58 @@ impl MessageList {
     // 异步添加响应消息
     pub async fn get_response(&self) {
         let lastest_msgs = self.get_messages();
-        let response = get_response(lastest_msgs).await;
-        self.add_message(Sender::Assistant, response.to_string());
+
+        let llm_service = self.services.lock().unwrap().clone();
+
+        let llm_service = llm_service
+            .find_service(self.current_service.lock().unwrap().clone().unwrap())
+            .unwrap();
+
+        let base_url = llm_service.base_url.clone();
+        let model = llm_service.model_name.clone();
+        let api_key = llm_service.api_key.clone();
+
+        println!("base_url: {}", base_url);
+        println!("model: {}", model);
+        println!("api_key: {}", api_key);
+
+        let http_client = reqwest::Client::builder().build().unwrap();
+
+        let client = Client {
+            http_client,
+            base_url,
+            api_key,
+            organization: None,
+            project: None,
+        };
+
+        let messages = lastest_msgs
+            .iter()
+            .map(|msg| ChatMessage {
+                role: match msg.sender {
+                    Sender::User => Role::User,
+                    Sender::System => Role::System,
+                    Sender::Assistant => Role::Assistant,
+                },
+                content: ChatMessageContent::Text(msg.content.clone()),
+                ..Default::default()
+            })
+            .collect();
+
+        let parameters = ChatCompletionParameters {
+            model,
+            messages,
+            ..Default::default()
+        };
+
+        let result = client.chat().create(parameters).await;
+        if result.is_err() {
+            let err = result.err().unwrap();
+            self.add_message(Sender::Assistant, format!("请求失败: {}", err));
+        } else {
+            let response = extract_text_content(result.unwrap().choices[0].message.content.clone());
+            self.add_message(Sender::Assistant, response.to_string());
+        }
     }
 
     pub fn clear(&self) {

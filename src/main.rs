@@ -8,6 +8,8 @@ fn main() -> Result<(), slint::PlatformError> {
     let tokio_runtime = Arc::new(tokio::runtime::Runtime::new().unwrap());
 
     let msg_list = Arc::new(MessageList::default());
+    let current_service = ui.get_current_service().to_string();
+    msg_list.set_current_service(current_service);
 
     ui.set_msgs(msg_list.to_model_rc());
 
@@ -46,6 +48,24 @@ fn main() -> Result<(), slint::PlatformError> {
         let msg_list = msg_list.clone();
         let ui_handle = ui.as_weak();
         move || {
+            msg_list.clear();
+            if let Some(ui) = ui_handle.upgrade() {
+                ui.set_msgs(msg_list.to_model_rc());
+            }
+        }
+    });
+
+    ui.on_current_item_changed({
+        let msg_list = msg_list.clone();
+        let ui_handle = ui.as_weak();
+        move || {
+            println!(
+                "模型切换到：{}",
+                ui_handle.unwrap().get_current_service().to_string()
+            );
+            let current_service = ui_handle.unwrap().get_current_service().to_string();
+            msg_list.set_current_service(current_service);
+            println!("{:?}", msg_list.current_service.lock().unwrap().clone());
             msg_list.clear();
             if let Some(ui) = ui_handle.upgrade() {
                 ui.set_msgs(msg_list.to_model_rc());

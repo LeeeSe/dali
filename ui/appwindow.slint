@@ -12,28 +12,50 @@ export component AppWindow inherits Window {
     background: StyleMetrics.dark-color-scheme ? rgb(36, 35, 37) : rgb(243, 242, 244);
 
     in-out property <[{a: int, b: string}]> msgs;
+    in-out property <string> current-service: side_bar.model[side_bar.current-item].text;
     callback get_input(string);
     callback clear();
+    callback current_item_changed();
 
     HorizontalBox {
         side_bar := StandardListView {
+
             width: 100px;
             // max-width: 200px;
             current-item: 0;
-            model: [{
-                text: "深度求索",
-            }, {
-                text: "通义千问",
-            }];
+
+            model: [
+                {
+                    text: "深度求索",
+                },
+                // {
+                //     text: "通义千问",
+                // },
+                {
+                    text: "月之暗面",
+                },
+                {
+                    text: "零一万物",
+                },
+                {
+                    text: "Groq",
+                }
+            ];
+            current-item-changed => {
+                current_item_changed();
+            }
         }
 
         VerticalBox {
-            if side_bar.current-item == 0:Msg {
+            Msg {
                 vertical-stretch: 1;
                 msgs: root.msgs;
             }
 
             HorizontalBox {
+                // padding: -5px;
+                padding-bottom: -2px;
+                padding-right: -2px;
                 vertical-stretch: 0;
                 LineEdit {
                     placeholder-text: "请输入您的问题";
