@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["LeeeSe <724818342@qq.com>"]
 edition = "2021"
 build = "build.rs"
+description = "LLM 高性能本地客户端"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,9 +12,17 @@ build = "build.rs"
 openai_dive = "0.4.8"
 reqwest = "0.12.4"
 serde = { version = "1.0.202", features = ["derive"] }
-slint = "1.5"
+slint = "1.6"
 tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.13"
 
 [build-dependencies]
-slint-build = "1.5"
+slint-build = "1.6"
+
+[package.metadata.bundle]
+name = "Dali"
+identifier = "com.doe.dali"
+icon = ["ui/icon.png"]
+copyright = "Copyright (c) LeeeSe 2022. All rights reserved."
+short_description = "LLM 高性能本地客户端"
+resources = ["ui/icon.png"]

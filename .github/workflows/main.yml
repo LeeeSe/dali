@@ -1,0 +1,108 @@
+name: Rust
+
+on:
+  push:
+    # branches: [ master ]
+    tags:
+      - 'v*'
+
+jobs:
+  # build-macos:
+  #   runs-on: macos-12
+
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - name: Set up Rust
+  #     uses: actions-rs/toolchain@v1
+  #     with:
+  #         toolchain: stable
+  #         profile: minimal
+  #         override: true
+
+  #   - name: Install dependencies
+  #     run: cargo install cargo-bundle --git https://github.com/zed-industries/cargo-bundle.git --branch add-plist-extension
+
+  #   - name: Add aarch64 target
+  #     run: rustup target add aarch64-apple-darwin
+      
+  #   - name: Bundle for x86_64
+  #     run: cargo bundle --release
+
+  #   - name: Bundle for aarch64
+  #     run: cargo bundle --target aarch64-apple-darwin --release
+
+  #   - name: Create Release
+  #     id: create_release
+  #     uses: actions/create-release@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # provided by Actions, do not need to create your own token
+  #     with:
+  #       tag_name: ${{ github.ref }}
+  #       release_name: ${{ github.ref }}
+  #       draft: false
+  #       prerelease: true  # set to true if you want the release to be a pre-release
+
+  #   - name: Zip binaries
+  #     run: |
+  #       cd ./target/release/bundle/osx
+  #       zip -r ../../../../MessAuto_x86_64.zip MessAuto.app
+  #       cd ../../../../
+  #       cd ./target/aarch64-apple-darwin/release/bundle/osx
+  #       zip -r ../../../../../MessAuto_aarch64.zip MessAuto.app
+  #       cd ../../../../../
+
+  #   - name: Upload Release Asset x86_64
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     with:
+  #       upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
+  #       asset_path: ./MessAuto_x86_64.zip
+  #       asset_name: MessAuto_x86_64.zip
+  #       asset_content_type: application/zip
+    
+  #   - name: Upload Release Asset aarch64
+  #     uses: actions/upload-release-asset@v1
+  #     env:
+  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     with:
+  #       upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
+  #       asset_path: ./MessAuto_aarch64.zip
+  #       asset_name: MessAuto_aarch64.zip
+  #       asset_content_type: application/zip
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+    - name: Install dependencies
+      run: cargo install cargo-bundle --git https://github.com/zed-industries/cargo-bundle.git --branch add-plist-extension
+
+    - name: Add x86_64 target
+      run: rustup target add x86_64-pc-windows-msvc
+
+    - name: Build for x86_64
+      run: cargo build --release --target x86_64-pc-windows-msvc
+
+    - name: Zip binaries
+      run: |
+        cd ./target/x86_64-pc-windows-msvc/release
+        zip -r ../../../MessAuto_windows_x86_64.zip *
+
+    - name: Upload Release Asset Windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.build-macos.outputs.create_release.outputs.upload_url }}
+        asset_path: ./target/MessAuto_windows_x86_64.zip
+        asset_name: MessAuto_windows_x86_64.zip
+        asset_content_type: application/zip
