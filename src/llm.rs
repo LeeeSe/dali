@@ -2,9 +2,6 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-// 常量 toml 文件路径
-const TOML_PATH: &str = "/Users/ls/.config/dali/llm.toml";
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LLMService {
     pub api_key: String,
@@ -39,16 +36,55 @@ impl LLMServiceList {
         }
     }
 
+    // 创建一个默认的 LLMServiceList
+    pub fn default() -> Self {
+        let mut services = Self::new();
+        services.add_service(LLMService::new(
+            "sk-42ea2ce6b4eb4018b48dc3c1469632a1",
+            "deepseek-chat",
+            "https://api.deepseek.com",
+            "deepseek",
+        ));
+    
+        services.add_service(LLMService::new(
+            "ebf76549bd4a4627a4979768c7c9c11b",
+            "yi-large-turbo",
+            "https://api.lingyiwanwu.com/v1",
+            "yi",
+        ));
+    
+        services.add_service(LLMService::new(
+            "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",
+            "llama3-70b-8192",
+            "https://api.groq.com/openai/v1",
+            "groq",
+        ));
+    
+        services.add_service(LLMService::new(
+            "sk-h0DITLfsI4Cko8NNyjVV2u273ma8Ppvd6mriTQnYkL5vFmZL",
+            "moonshot-v1-32k",
+            "https://api.moonshot.cn/v1",
+            "moonshot",
+        ));
+        services
+    }
+
     // 保存到 toml 文件
     pub fn save(&self) -> Result<(), std::io::Error> {
+        let toml_path = env_home::env_home_dir().unwrap().join(".config/dali/llm.toml");
         let toml = toml::to_string(&self).unwrap();
-        std::fs::write(TOML_PATH, toml)?;
+        std::fs::write(toml_path, toml)?;
         Ok(())
     }
 
     // 从 toml 文件加载
     pub fn load() -> Result<Self, std::io::Error> {
-        let toml = std::fs::read_to_string(TOML_PATH)?;
+        let toml_path = env_home::env_home_dir().unwrap().join(".config/dali/llm.toml");
+        // 如果文件不存在，返回一个默认的 LLMServiceList
+        if !toml_path.exists() {
+            return Ok(Self::default());
+        }
+        let toml = std::fs::read_to_string(toml_path)?;
         let services: LLMServiceList = toml::from_str(&toml).unwrap();
         Ok(services)
     }
