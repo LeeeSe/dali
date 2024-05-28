@@ -45,33 +45,42 @@ impl LLMServiceList {
             "https://api.deepseek.com",
             "deepseek",
         ));
-    
+
         services.add_service(LLMService::new(
             "ebf76549bd4a4627a4979768c7c9c11b",
-            "yi-large-turbo",
+            "yi-large-rag",
             "https://api.lingyiwanwu.com/v1",
             "yi",
         ));
-    
+
         services.add_service(LLMService::new(
             "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",
             "llama3-70b-8192",
             "https://api.groq.com/openai/v1",
             "groq",
         ));
-    
+
         services.add_service(LLMService::new(
             "sk-h0DITLfsI4Cko8NNyjVV2u273ma8Ppvd6mriTQnYkL5vFmZL",
             "moonshot-v1-32k",
             "https://api.moonshot.cn/v1",
             "moonshot",
         ));
+
+        services.add_service(LLMService::new(
+            "sk-ce3f98adce0856307a9f19d7efc1bc08",
+            "Baichuan4",
+            "https://api.baichuan-ai.com/v1",
+            "baichuan",
+        ));
         services
     }
 
     // 保存到 toml 文件
     pub fn save(&self) -> Result<(), std::io::Error> {
-        let toml_path = env_home::env_home_dir().unwrap().join(".config/dali/llm.toml");
+        let toml_path = env_home::env_home_dir()
+            .unwrap()
+            .join(".config/dali/llm.toml");
         let toml = toml::to_string(&self).unwrap();
         std::fs::write(toml_path, toml)?;
         Ok(())
@@ -79,7 +88,9 @@ impl LLMServiceList {
 
     // 从 toml 文件加载
     pub fn load() -> Result<Self, std::io::Error> {
-        let toml_path = env_home::env_home_dir().unwrap().join(".config/dali/llm.toml");
+        let toml_path = env_home::env_home_dir()
+            .unwrap()
+            .join(".config/dali/llm.toml");
         // 如果文件不存在，返回一个默认的 LLMServiceList
         if !toml_path.exists() {
             return Ok(Self::default());
@@ -98,6 +109,7 @@ impl LLMServiceList {
     pub fn find_service(&self, provider_name: String) -> Option<&LLMService> {
         let mut map = HashMap::new();
         map.insert("通义千问", "qwen");
+        map.insert("百川智能", "baichuan");
         map.insert("月之暗面", "moonshot");
         map.insert("零一万物", "yi");
         map.insert("深度求索", "deepseek");

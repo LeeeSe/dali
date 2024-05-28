@@ -4,7 +4,7 @@ on:
   push:
     # branches: [ master ]
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   # build-macos:
@@ -24,7 +24,7 @@ jobs:
 
   #   - name: Add aarch64 target
   #     run: rustup target add aarch64-apple-darwin
-      
+
   #   - name: Bundle for x86_64
   #     run: cargo bundle --release
 
@@ -45,10 +45,10 @@ jobs:
   #   - name: Zip binaries
   #     run: |
   #       cd ./target/release/bundle/osx
-  #       zip -r ../../../../MessAuto_x86_64.zip MessAuto.app
+  #       zip -r ../../../../Dali_x86_64.zip Dali.app
   #       cd ../../../../
   #       cd ./target/aarch64-apple-darwin/release/bundle/osx
-  #       zip -r ../../../../../MessAuto_aarch64.zip MessAuto.app
+  #       zip -r ../../../../../Dali_aarch64.zip Dali.app
   #       cd ../../../../../
 
   #   - name: Upload Release Asset x86_64
@@ -57,63 +57,63 @@ jobs:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #     with:
   #       upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
-  #       asset_path: ./MessAuto_x86_64.zip
-  #       asset_name: MessAuto_x86_64.zip
+  #       asset_path: ./Dali_x86_64.zip
+  #       asset_name: Dali_x86_64.zip
   #       asset_content_type: application/zip
-    
+
   #   - name: Upload Release Asset aarch64
   #     uses: actions/upload-release-asset@v1
   #     env:
   #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #     with:
   #       upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above
-  #       asset_path: ./MessAuto_aarch64.zip
-  #       asset_name: MessAuto_aarch64.zip
+  #       asset_path: ./Dali_aarch64.zip
+  #       asset_name: Dali_aarch64.zip
   #       asset_content_type: application/zip
 
   build-windows:
     runs-on: windows-2019
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
+      - uses: actions/checkout@v2
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
           toolchain: stable
           profile: minimal
           override: true
 
-    - name: Install dependencies
-      run: cargo install cargo-bundle --git https://github.com/zed-industries/cargo-bundle.git --branch add-plist-extension
+      - name: Install dependencies
+        run: cargo install cargo-bundle --git https://github.com/zed-industries/cargo-bundle.git --branch add-plist-extension
 
-    - name: Add x86_64 target
-      run: rustup target add x86_64-pc-windows-msvc
+      - name: Add x86_64 target
+        run: rustup target add x86_64-pc-windows-msvc
 
-    - name: Build for x86_64
-      run: cargo build --release --target x86_64-pc-windows-msvc
+      - name: Build for x86_64
+        run: cargo build --release --target x86_64-pc-windows-msvc
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
-        draft: false
-        prerelease: true 
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: true
 
-    - name: Zip binaries
-      run: |
-        cd ./target/x86_64-pc-windows-msvc/release
-        Compress-Archive -Path * -DestinationPath ../../../MessAuto_windows_x86_64.zip -Force
+      - name: Zip binaries
+        run: |
+          cd ./target/x86_64-pc-windows-msvc/release
+          Compress-Archive -Path * -DestinationPath ../../../Dali_windows_x86_64.zip -Force
 
-    - name: Upload Release Asset Windows
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./MessAuto_windows_x86_64.zip
-        asset_name: MessAuto_windows_x86_64.zip
-        asset_content_type: application/zip
+      - name: Upload Release Asset Windows
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./Dali_windows_x86_64.zip
+          asset_name: Dali_windows_x86_64.zip
+          asset_content_type: application/zip

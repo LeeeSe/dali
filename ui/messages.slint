@@ -1,12 +1,16 @@
 import { Button, VerticalBox , ListView, StandardListView,HorizontalBox, StandardButton, ComboBox, ProgressIndicator, StandardTableView, TextEdit} from "std-widgets.slint";
 import { Palette } from "std-widgets.slint";
-import { StyleMetrics, ScrollView } from "std-widgets.slint";
+import { StyleMetrics, ScrollView, LineEdit } from "std-widgets.slint";
 
 export component Msg inherits Window {
     callback more_game();
     in-out property <[{a: int, b: string}]> msgs;
+    in-out property <length> scrollview_y <=> scrollview.viewport-y;
+    out property <length> scroll_viewport_height <=> scrollview.viewport-height;
+    out property <length> scroll_visible_height <=> scrollview.visible-height;
 
-    ScrollView {
+    scrollview := ScrollView {
+
         VerticalBox {
             alignment: LayoutAlignment.start;
             for msg[index] in msgs: VerticalBox {

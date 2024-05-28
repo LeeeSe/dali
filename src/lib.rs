@@ -1,11 +1,17 @@
 mod llm;
-
+use futures::StreamExt;
+use i_slint_backend_winit::winit::window;
 use llm::LLMServiceList;
 use openai_dive::v1::{
     api::Client,
     resources::chat::{ChatCompletionParameters, ChatMessage, ChatMessageContent, Role},
 };
-use slint::{ModelRc, SharedString, VecModel};
+
+pub mod ui {
+    slint::include_modules!();
+}
+
+use slint::{ModelRc, SharedString, VecModel, Weak};
 
 pub fn msg_with_blank_end(mut msg: String) -> String {
     msg.push(' '); // 尾部添加空格
@@ -39,7 +45,10 @@ pub struct Message {
     pub content: String,
 }
 
-use std::sync::{Arc, Mutex};
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Clone, Debug)]
 pub struct MessageList {
@@ -89,6 +98,13 @@ impl MessageList {
         }
     }
 
+    // 添加一条消息
+    pub fn add_stream(&self, stream_content: String) {
+        let len = self.messages.lock().unwrap().len();
+        let mut messages = self.messages.lock().unwrap();
+        messages[len - 1].content.push_str(stream_content.as_str());
+    }
+
     // 获取当前所有消息的克隆
     pub fn get_messages(&self) -> Vec<Message> {
         self.messages.lock().unwrap().clone()
@@ -136,9 +152,9 @@ impl MessageList {
         let model = llm_service.model_name.clone();
         let api_key = llm_service.api_key.clone();
 
-        println!("base_url: {}", base_url);
-        println!("model: {}", model);
-        println!("api_key: {}", api_key);
+        // println!("base_url: {}", base_url);
+        // println!("model: {}", model);
+        // println!("api_key: {}", api_key);
 
         let http_client = reqwest::Client::builder().build().unwrap();
 
@@ -176,6 +192,78 @@ impl MessageList {
         } else {
             let response = extract_text_content(result.unwrap().choices[0].message.content.clone());
             self.add_message(Sender::Assistant, response.to_string());
+        }
+    }
+
+    // 异步添加响应消息
+    pub async fn get_response_stream(self: Arc<Self>, weak_window: Weak<ui::AppWindow>) {
+        let lastest_msgs = self.get_messages();
+
+        let llm_service = self.services.lock().unwrap().clone();
+
+        let llm_service = llm_service
+            .find_service(self.current_service.lock().unwrap().clone().unwrap())
+            .unwrap();
+
+        let base_url = llm_service.base_url.clone();
+        let model = llm_service.model_name.clone();
+        let api_key = llm_service.api_key.clone();
+
+        let http_client = reqwest::Client::builder().build().unwrap();
+
+        let client = Client {
+            http_client,
+            base_url,
+            api_key,
+            organization: None,
+            project: None,
+        };
+
+        let messages = lastest_msgs
+            .iter()
+            .map(|msg| ChatMessage {
+                role: match msg.sender {
+                    Sender::User => Role::User,
+                    Sender::System => Role::System,
+                    Sender::Assistant => Role::Assistant,
+                },
+                content: ChatMessageContent::Text(msg.content.clone()),
+                ..Default::default()
+            })
+            .collect();
+
+        let parameters = ChatCompletionParameters {
+            model,
+            messages,
+            ..Default::default()
+        };
+
+        let mut stream = client.chat().create_stream(parameters).await.unwrap();
+        self.add_message(Sender::Assistant, "".to_string());
+
+        while let Some(response) = stream.next().await {
+            match response {
+                Ok(chat_response) => chat_response.choices.iter().for_each(|choice| {
+                    if let Some(content) = &choice.delta.content {
+                        self.add_stream(content.to_string());
+
+                        let cloned_self = Arc::clone(&self); // 克隆Arc
+                        weak_window
+                            .upgrade_in_event_loop(move |window| {
+                                window.set_msgs(cloned_self.to_model_rc());
+                            })
+                            .unwrap();
+                    }
+                }),
+                Err(e) => self.add_stream(e.to_string()),
+            };
+            weak_window
+                .upgrade_in_event_loop(move |window| {
+                    window.set_scroll_y(
+                        window.get_scroll_visible_height() - window.get_scroll_viewport_height(),
+                    );
+                })
+                .unwrap();
         }
     }
 

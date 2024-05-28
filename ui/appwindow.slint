@@ -1,6 +1,7 @@
 import { Button, VerticalBox , ListView, StandardListView, HorizontalBox, StandardButton, ComboBox, ProgressIndicator} from "std-widgets.slint";
 import { Msg } from "messages.slint";
 import { StyleMetrics, TextEdit, LineEdit } from "std-widgets.slint";
+import { Palette } from "std-widgets.slint";
 export component AppWindow inherits Window {
     title: "Dali";
     min-width: 600px;
@@ -13,11 +14,15 @@ export component AppWindow inherits Window {
 
     in-out property <[{a: int, b: string}]> msgs;
     in-out property <string> current-service: side_bar.model[side_bar.current-item].text;
+    in-out property <length> scroll_y <=> msg.scrollview_y;
+    out property <length> scroll_viewport_height:msg.scroll_viewport_height;
+    out property <length> scroll_visible_height:msg.scroll_visible_height;
     callback get_input(string);
     callback clear();
     callback current_item_changed();
 
     HorizontalBox {
+        padding-top: 30px;
         side_bar := StandardListView {
 
             width: 100px;
@@ -25,6 +30,7 @@ export component AppWindow inherits Window {
             current-item: 0;
 
             model: [
+                { text: "百川智能" },
                 {
                     text: "深度求索",
                 },
@@ -47,7 +53,7 @@ export component AppWindow inherits Window {
         }
 
         VerticalBox {
-            Msg {
+            msg := Msg {
                 vertical-stretch: 1;
                 msgs: root.msgs;
             }
@@ -62,14 +68,17 @@ export component AppWindow inherits Window {
                     accepted(text) => {
                         get_input(text);
                         self.text = "";
+                        scroll_y = scroll_visible_height - scroll_viewport_height;
                     }
                 }
 
                 Button {
                     horizontal-stretch: 0;
                     icon: @image-url("clear.svg");
+                    colorize-icon: true;
                     clicked => {
                         root.msgs = [];
+                        scroll_y = 0px;
                         clear();
                     }
                 }
