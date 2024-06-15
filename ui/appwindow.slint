@@ -27,16 +27,16 @@ export component AppWindow inherits Window {
 
             width: 100px;
             // max-width: 200px;
-            current-item: 0;
+            current-item: 3;
 
             model: [
                 { text: "百川智能" },
                 {
                     text: "深度求索",
                 },
-                // {
-                //     text: "通义千问",
-                // },
+                {
+                    text: "通义千问",
+                },
                 {
                     text: "月之暗面",
                 },
@@ -53,6 +53,23 @@ export component AppWindow inherits Window {
         }
 
         VerticalBox {
+            padding-top: -20px;
+            // HorizontalBox {
+            //     alignment: LayoutAlignment.start;
+            //     padding: -10px;
+            //     Button {
+            //         text: "🛜";
+            //     }
+
+            //     Button {
+            //         text: "file";
+            //     }
+
+            //     Button {
+            //         text: "图片";
+            //     }
+            // }
+
             msg := Msg {
                 vertical-stretch: 1;
                 msgs: root.msgs;

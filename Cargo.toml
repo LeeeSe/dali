@@ -15,9 +15,11 @@ futures = "0.3.30"
 i-slint-backend-winit = "1.6.0"
 reqwest = "0.12.4"
 serde = { version = "1.0.202", features = ["derive"] }
-slint = "1.6"
+slint = { version = "1.6", features = ["renderer-skia"] }
+# slint = "1.6"
 tokio = { version = "1.37.0", features = ["full"] }
 toml = "0.8.13"
+peak_alloc = "0.2.1"
 
 [build-dependencies]
 slint-build = "1.6"

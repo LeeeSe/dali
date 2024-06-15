@@ -73,6 +73,14 @@ impl LLMServiceList {
             "https://api.baichuan-ai.com/v1",
             "baichuan",
         ));
+
+        services.add_service(LLMService::new(
+            "90BAcWRjfaGNrapG0JzAYVOBrIDcAuiU0uF74CrOiNHnLANy",
+            "accounts/fireworks/models/qwen2-72b-instruct",
+            "https://api.fireworks.ai/inference/v1",
+            "qwen",
+        ));
+
         services
     }
 

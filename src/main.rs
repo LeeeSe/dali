@@ -1,13 +1,12 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod llm;
 use dali::{ui, MessageList, Sender};
-use i_slint_backend_winit::winit::platform::macos::WindowBuilderExtMacOS;
+use i_slint_backend_winit::winit::{platform::macos::WindowBuilderExtMacOS, window::WindowButtons};
 use std::sync::Arc;
-
 use ui::*;
 
 fn main() -> Result<(), slint::PlatformError> {
-    let mut backend = i_slint_backend_winit::Backend::new().unwrap();
+    let mut backend = i_slint_backend_winit::Backend::new()?;
     backend.window_builder_hook = Some(Box::new(|builder| {
         builder
             .with_fullsize_content_view(true)
@@ -15,6 +14,7 @@ fn main() -> Result<(), slint::PlatformError> {
             .with_titlebar_transparent(true)
     }));
     slint::platform::set_platform(Box::new(backend)).unwrap();
+
     let ui = AppWindow::new()?;
     let tokio_runtime = Arc::new(tokio::runtime::Runtime::new().unwrap());
 
@@ -32,7 +32,6 @@ fn main() -> Result<(), slint::PlatformError> {
 
             let tokio_runtime = tokio_runtime.clone();
             let msg_list_clone = msg_list.clone();
-            let msg_list_clone2 = msg_list.clone();
             let ui_handle_clone = ui_handle.clone();
 
             if let Some(ui) = ui_handle.upgrade() {
@@ -42,18 +41,10 @@ fn main() -> Result<(), slint::PlatformError> {
             let _ = slint::spawn_local(async move {
                 let _result = tokio_runtime
                     .spawn(async move {
-                        // msg_list_clone.get_response().await;
                         msg_list_clone.get_response_stream(ui_handle_clone).await;
                     })
                     .await
                     .expect("get_response failed");
-
-                // if let Some(ui) = ui_handle_clone.upgrade() {
-                //     ui.set_msgs(msg_list_clone2.to_model_rc());
-                //     ui.set_scroll_y(
-                //         ui.get_scroll_visible_height() - ui.get_scroll_viewport_height(),
-                //     );
-                // }
             })
             .unwrap();
         }
